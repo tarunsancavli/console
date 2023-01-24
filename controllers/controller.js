@@ -29,7 +29,7 @@ async function signIn(req, res) {
                 console.error(err);
             } else {
                 if (result) {
-                    const payload = { user_id: user._id, email };
+                    const payload = { user: user };
                     jwt.sign(payload, process.env.JWT_SECRET, (err, token) => {
                         res.status(200).json({
                             message: 'user signed in successfully',
