@@ -1,7 +1,5 @@
 const express = require('express');
 
-const passport = require('passport');
-
 const JWTauth = require('../middlewares/auth');
 
 const {signIn, signUp, changePassword, getAllUsers} = require('../controllers/controller');
