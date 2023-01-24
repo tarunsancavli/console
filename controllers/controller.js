@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 
 require('dotenv').config();
 
-const { getDB } = require('../db/db');
+const { getDB } = require('../config/db');
 
 async function getAllUsers(req, res) {
     const db = getDB();

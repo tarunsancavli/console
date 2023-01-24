@@ -12,7 +12,7 @@ require('dotenv').config();
 
 const app = express();
 
-require('./db/db').connectDB();
+require('./config/db').connectDB();
 
 app.use(bodyParser.urlencoded({extended: false}));
 
