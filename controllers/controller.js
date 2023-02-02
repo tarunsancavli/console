@@ -289,7 +289,9 @@ async function getgroupdetails(req, res) {
                 groupActive = group['active'];
                 groupDeleted = group['deleted'];
                 groupType = group['group_type'];
-                arr.push({ groupName, groupDesc, groupActive, groupDeleted, groupType });
+                if(groupDeleted !== true){
+                    arr.push({ groupName, groupDesc, groupActive, groupDeleted, groupType });
+                }
             } catch (err) {
                 console.error(err);
                 res.status(400).json(errorFunction(true, "something went wrong please try again"));
