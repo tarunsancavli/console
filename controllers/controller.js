@@ -219,17 +219,6 @@ async function getSessionlogs(req, res) {
                 res.status(400).json(errorFunction(true, "Error listing Devices"))
             }
         })
-        // let devices1 = await db.collection('devices').aggregate([{
-        //     $match: {
-        //         account: ObjectId(userAccountId)
-        //     }
-        // },
-        // {
-        //     $skip : limit * page
-        // },
-        // {
-        //     $limit: limit
-        // }]).toArray();
         res.status(200).json(errorFunction(false, "successfully fetched session logs", arr));
     } catch (err) {
         console.error(err);
@@ -289,7 +278,7 @@ async function getgroupdetails(req, res) {
                 groupActive = group['active'];
                 groupDeleted = group['deleted'];
                 groupType = group['group_type'];
-                if(groupDeleted !== true){
+                if (groupDeleted !== true) {
                     arr.push({ groupName, groupDesc, groupActive, groupDeleted, groupType });
                 }
             } catch (err) {
@@ -304,4 +293,67 @@ async function getgroupdetails(req, res) {
     }
 }
 
-module.exports = { signIn, signUp, changePassword, getAllUsers, getStats, getSessionlogs, getgroupdetails, getallgroups };
+async function createGroup(req, res) {
+    try {
+        const db = getDB();
+        const group = req.body;
+        const userAccountId = req.user['user']['account'];
+        const oldGroup = await db.collection('groups').findOne({ group_name: group.group_name });
+        if (oldGroup) {
+            res.status(403).json(errorFunction(true, "Group already exists with same name"));
+        }
+        else {
+            group.account = ObjectId(userAccountId);
+            await db.collection('groups').insertOne(group);
+            res.status(200).json(errorFunction(false, "group Created Successfully", group));
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(400).json(errorFunction(true, "Error creating group"));
+    }
+
+}
+
+async function updateGroup(req, res) {
+    try {
+        const db = getDB();
+        let groupId = req.params['id'];
+        let userAccountId = req.user['user']['account'];
+        const group = await db.collection('groups').findOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+        if (group == null) {
+            res.status(404).json(errorFunction(true, "No group for the provided group id"))
+        } else {
+            const updateDocument = {
+                $set: {
+                    group_name: "test2",
+                    description: "test2"
+                },
+            }
+            await db.collection('groups').updateOne(group, updateDocument);
+            res.status(200).json(errorFunction(false, "", "group updated successfully",));
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(400).json(errorFunction(true, "Error updating group"));
+    }
+}
+
+async function deleteGroup(req, res) {
+    try {
+        const db = getDB();
+        let groupId = req.params['id'];
+        let userAccountId = req.user['user']['account'];
+        const group = await db.collection('groups').findOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+        if (group == null) {
+            res.status(404).json(errorFunction(true, "No group for the provided group id"))
+        } else {
+            await db.collection('groups').deleteOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+            res.status(200).json(errorFunction(false, "", "Group deleted successfully"));
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(400).json(errorFunction(true, "Error deleting specified Document"));
+    }
+}
+
+module.exports = { signIn, signUp, changePassword, getAllUsers, getStats, getSessionlogs, getgroupdetails, getallgroups, createGroup, updateGroup, deleteGroup };
