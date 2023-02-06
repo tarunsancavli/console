@@ -38,8 +38,8 @@ const updateGroupValidation = joi.object({
 
 const userSignUpValidation = async (req, res, next) => {
     const payload = {
-        firstName: req.body.first_Name,
-        lastName: req.body.last_Name,
+        firstName: req.body.first_name,
+        lastName: req.body.last_name,
         email: req.body.email,
         password: req.body.password,
     };
