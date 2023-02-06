@@ -198,6 +198,9 @@ async function getSessionlogs(req, res) {
             }
         },
         {
+            $project: { match: 1 }
+        },
+        {
             $match: {
                 match: { $ne: [] }
             }
