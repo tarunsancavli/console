@@ -117,7 +117,7 @@ async function changePassword(req, res) {
                             }
 
                             await db.collection('users').updateOne(user, updateDocument);
-                            res.status(200).json(errorFunction(false, "Your Password has been Changed Successfully"));
+                            res.status(200).json(errorFunction(false, "", "Your Password has been Changed Successfully"));
                         }
                         else {
                             res.status(403).json(errorFunction(true, "Incorrect Password"));
@@ -154,6 +154,9 @@ async function getStats(req, res) {
                         foreignField: "imsi",
                         as: "match"
                     }
+                },
+                {
+                    $project: { match: 1 }
                 },
                 {
                     $match: {
