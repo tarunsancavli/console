@@ -42,7 +42,7 @@ async function signIn(req, res) {
                     if (result) {
                         const payload = { user: user };
                         jwt.sign(payload, process.env.JWT_SECRET, (err, token) => {
-                            res.status(200).json(errorFunction(false, "user signed in successfully", `user signed in successfully,token: ${token}`))
+                            res.status(200).send(errorFunction(false, "", `user signed in successfully,\ntoken: ${token}`))
                         });
                     }
                     else {
