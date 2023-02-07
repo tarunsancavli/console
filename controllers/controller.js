@@ -141,37 +141,20 @@ async function getStats(req, res) {
         if (tot_devices == 0) {
             res.status(404).json(errorFunction(true, "User has no Registered Devices"));
         } else {
-            const devices = await db.collection('devices').aggregate([
-                {
-                    $match: {
-                        account: ObjectId(userAccountId)
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "pdp_ip_lease",
-                        localField: "active_imsi",
-                        foreignField: "imsi",
-                        as: "match"
-                    }
-                },
-                {
-                    $project: { match: 1 }
-                },
-                {
-                    $match: {
-                        match: { $ne: [] }
-                    }
-                },
-                {
-                    $count: "totalMatchedDocument"
+            const pdpArray = await db.collection('pdp_ip_lease').aggregate([{
+                $match: {
+                    account_id: userAccountId
                 }
+            },
+            {
+                $count: "totalMatchedDocument"
+            }
             ]).toArray();
-
-            onlineCount = devices[0]["totalMatchedDocument"];
+            onlineCount = pdpArray[0]["totalMatchedDocument"];
             res.status(200).send(errorFunction(false, "successfully fetched the Details", `total_devices: ${tot_devices},\nonline_devices: ${onlineCount},\noffline_devices: ${tot_devices - onlineCount}`))
         }
     } catch (err) {
+        console.log(err);
         res.status(500).json(errorFunction(true, "Error Fetching data"))
     }
 }
@@ -184,25 +167,36 @@ async function getSessionlogs(req, res) {
         let sessionId, time, imei, framedIp;
         let arr = [];
         const userAccountId = req.user['user']['account'];
-        const devices = await db.collection('devices').aggregate([{
+        // const devices = await db.collection('devices').aggregate([{
+        //     $match: {
+        //         account: ObjectId(userAccountId)
+        //     }
+        // },
+        // {
+        //     $lookup: {
+        //         from: "pdp_ip_lease",
+        //         localField: "active_imsi",
+        //         foreignField: "imsi",
+        //         as: "match"
+        //     }
+        // },
+        // {
+        //     $project: { match: 1 }
+        // },
+        // {
+        //     $match: {
+        //         match: { $ne: [] }
+        //     }
+        // },
+        // {
+        //     $skip: limit * page
+        // },
+        // {
+        //     $limit: limit
+        // }]).toArray();
+        const pdpArray = await db.collection('pdp_ip_lease').aggregate([{
             $match: {
-                account: ObjectId(userAccountId)
-            }
-        },
-        {
-            $lookup: {
-                from: "pdp_ip_lease",
-                localField: "active_imsi",
-                foreignField: "imsi",
-                as: "match"
-            }
-        },
-        {
-            $project: { match: 1 }
-        },
-        {
-            $match: {
-                match: { $ne: [] }
+                account_id: userAccountId
             }
         },
         {
@@ -211,17 +205,16 @@ async function getSessionlogs(req, res) {
         {
             $limit: limit
         }]).toArray();
-        devices.forEach(async device => {
+        pdpArray.forEach(pdp => {
             try {
-                const match = device["match"][0];
-                sessionId = match["session_id"]
-                time = moment(match["updated_at"]).format("Do MMMM YYYY, hh:mm:ss");
-                imei = match["detected_imei"];
-                imsi = match["imsi"];
-                framedIp = match["framed_ip_address"];
+                sessionId = pdp["session_id"];
+                time = moment(pdp["updated_at"]).format("Do MMMM YYYY, hh:mm:ss");
+                imei = pdp["detected_imei"];
+                imsi = pdp["imsi"];
+                framedIp = pdp["framed_ip_address"];
                 arr.push({ sessionId, time, imei, imsi, framedIp });
             } catch (err) {
-                console.error(err);
+                console.log(err);
                 res.status(400).json(errorFunction(true, "Error listing Devices"))
             }
         })
