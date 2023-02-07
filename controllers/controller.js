@@ -19,7 +19,7 @@ async function getAllUsers(req, res) {
         res.status(200).json(errorFunction(false, "Sending all users", users));
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error listing all users"))
+        res.status(500).json(errorFunction(true, "Error listing all users"))
     }
 }
 
@@ -53,7 +53,7 @@ async function signIn(req, res) {
         }
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error Signing In"));
+        res.status(500).json(errorFunction(true, "Error Signing In"));
     }
 }
 
@@ -76,7 +76,7 @@ async function signUp(req, res) {
             await db.collection('users').insertOne(user);
             res.status(200).json(errorFunction(false, "user Created Successfully", user));
         } catch (err) {
-            res.status(400).json(errorFunction(true, "Error adding user"));
+            res.status(500).json(errorFunction(true, "Error adding user"));
             console.error(err);
         }
     }
@@ -128,7 +128,7 @@ async function changePassword(req, res) {
         }
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error Changing Password"));
+        res.status(500).json(errorFunction(true, "Error Changing Password"));
     }
 }
 
@@ -172,7 +172,7 @@ async function getStats(req, res) {
             res.status(200).send(errorFunction(false, "successfully fetched the Details", `total_devices: ${tot_devices},\nonline_devices: ${onlineCount},\noffline_devices: ${tot_devices - onlineCount}`))
         }
     } catch (err) {
-        res.status(400).json(errorFunction(true, "Error Fetching data"))
+        res.status(500).json(errorFunction(true, "Error Fetching data"))
     }
 }
 
@@ -228,7 +228,7 @@ async function getSessionlogs(req, res) {
         res.status(200).json(errorFunction(false, "successfully fetched session logs", arr));
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "error getting session logs"))
+        res.status(500).json(errorFunction(true, "error getting session logs"))
     }
 }
 
@@ -295,7 +295,7 @@ async function getgroupdetails(req, res) {
         res.status(200).json(errorFunction(false, "successfully fetched group details", arr))
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error getting group details"))
+        res.status(500).json(errorFunction(true, "Error getting group details"))
     }
 }
 
@@ -315,7 +315,7 @@ async function createGroup(req, res) {
         }
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error creating group"));
+        res.status(500).json(errorFunction(true, "Error creating group"));
     }
 
 }
@@ -340,7 +340,7 @@ async function updateGroup(req, res) {
         }
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error updating group"));
+        res.status(500).json(errorFunction(true, "Error updating group"));
     }
 }
 
@@ -358,7 +358,7 @@ async function deleteGroup(req, res) {
         }
     } catch (err) {
         console.error(err);
-        res.status(400).json(errorFunction(true, "Error deleting specified Document"));
+        res.status(500).json(errorFunction(true, "Error deleting specified Document"));
     }
 }
 
