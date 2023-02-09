@@ -217,7 +217,7 @@ async function getgroupdetails(req, res) {
         let groupDesc;
         let groupActive;
         let groupDeleted;
-        const userAccountId = req.user['user']['account'];
+        const userAccountId = req.user[0]['account'];
         if (groupType) {
             if (isNaN(groupType)) {
                 res.status(400).json(errorFunction(true, "provide a valid group_type"));
