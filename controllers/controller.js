@@ -136,7 +136,6 @@ async function getStats(req, res) {
         const db = getDB();
         let onlineCount = 0;
         const userAccountId = req.user[0]['account'];
-        console.log(userAccountId);
         const tot_devices = await db.collection('devices').countDocuments({ account: userAccountId });
         if (tot_devices == 0) {
             res.status(404).json(errorFunction(true, "User has no Registered Devices"));
@@ -150,7 +149,6 @@ async function getStats(req, res) {
                 $count: "totalMatchedDocument"
             }
             ]).toArray();
-            console.log(pdpArray);
             onlineCount = pdpArray[0]["totalMatchedDocument"];
             res.status(200).send(errorFunction(false, "successfully fetched the Details", `total_devices: ${tot_devices},\nonline_devices: ${onlineCount},\noffline_devices: ${tot_devices - onlineCount}`))
         }
