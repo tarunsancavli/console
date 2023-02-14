@@ -30,7 +30,7 @@ async function signIn(req, res) {
         const password = req.query.password;
 
         const user = await db.collection('users').findOne({ email: email });
-
+        
         if (!user) {
             res.status(404).json(errorFunction(true, "incorrect email"))
         } else {
@@ -41,9 +41,8 @@ async function signIn(req, res) {
                 } else {
                     if (result) {
                         const payload = { user: user };
-                        jwt.sign(payload, process.env.JWT_SECRET, (err, token) => {
-                            res.status(200).send(errorFunction(false, "", `user signed in successfully,\ntoken: ${token}`))
-                        });
+                        const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn : '1d'});
+                        res.status(200).json(errorFunction(false,"",{msg: "logged in successfully",token: "Bearer "+ token}))
                     }
                     else {
                         res.status(401).json(errorFunction(true, "Incorrect password"));
@@ -136,14 +135,14 @@ async function getStats(req, res) {
     try {
         const db = getDB();
         let onlineCount = 0;
-        const userAccountId = req.user['user']['account'];
-        const tot_devices = await db.collection('devices').countDocuments({ account: ObjectId(userAccountId) });
+        const userAccountId = req.user[0]['account'];
+        const tot_devices = await db.collection('devices').countDocuments({ account: userAccountId });
         if (tot_devices == 0) {
             res.status(404).json(errorFunction(true, "User has no Registered Devices"));
         } else {
             const pdpArray = await db.collection('pdp_ip_lease').aggregate([{
                 $match: {
-                    account_id: userAccountId
+                    account_id: userAccountId.toString()
                 }
             },
             {
@@ -166,37 +165,10 @@ async function getSessionlogs(req, res) {
         const db = getDB();
         let sessionId, time, imei, framedIp;
         let arr = [];
-        const userAccountId = req.user['user']['account'];
-        // const devices = await db.collection('devices').aggregate([{
-        //     $match: {
-        //         account: ObjectId(userAccountId)
-        //     }
-        // },
-        // {
-        //     $lookup: {
-        //         from: "pdp_ip_lease",
-        //         localField: "active_imsi",
-        //         foreignField: "imsi",
-        //         as: "match"
-        //     }
-        // },
-        // {
-        //     $project: { match: 1 }
-        // },
-        // {
-        //     $match: {
-        //         match: { $ne: [] }
-        //     }
-        // },
-        // {
-        //     $skip: limit * page
-        // },
-        // {
-        //     $limit: limit
-        // }]).toArray();
+        const userAccountId = req.user[0]['account'];
         const pdpArray = await db.collection('pdp_ip_lease').aggregate([{
             $match: {
-                account_id: userAccountId
+                account_id: userAccountId.toString()
             }
         },
         {
@@ -227,8 +199,8 @@ async function getSessionlogs(req, res) {
 
 async function getallgroups(req, res) {
     const db = getDB();
-    const userAccountId = req.user['user']['account'];
-    const allGroups = await db.collection('groups').find({ account: ObjectId(userAccountId) }).toArray();
+    const userAccountId = req.user[0]['account'];
+    const allGroups = await db.collection('groups').find({ account: userAccountId }).toArray();
     res.status(200).json(errorFunction(false, "successfully fetched all groups", allGroups))
 }
 
@@ -243,7 +215,7 @@ async function getgroupdetails(req, res) {
         let groupDesc;
         let groupActive;
         let groupDeleted;
-        const userAccountId = req.user['user']['account'];
+        const userAccountId = req.user[0]['account'];
         if (groupType) {
             if (isNaN(groupType)) {
                 res.status(400).json(errorFunction(true, "provide a valid group_type"));
@@ -251,7 +223,7 @@ async function getgroupdetails(req, res) {
             else {
                 groups = await db.collection('groups').aggregate([{
                     $match: {
-                        account: ObjectId(userAccountId)
+                        account: userAccountId
                     }
                 },
                 {
@@ -265,7 +237,7 @@ async function getgroupdetails(req, res) {
         else {
             groups = await db.collection('groups').aggregate([{
                 $match: {
-                    account: ObjectId(userAccountId)
+                    account: userAccountId
                 }
             }
             ]).toArray();
@@ -296,13 +268,13 @@ async function createGroup(req, res) {
     try {
         const db = getDB();
         const group = req.body;
-        const userAccountId = req.user['user']['account'];
+        const userAccountId = req.user[0]['account'];
         const oldGroup = await db.collection('groups').findOne({ group_name: group.group_name });
         if (oldGroup) {
             res.status(403).json(errorFunction(true, "Group already exists with same name"));
         }
         else {
-            group.account = ObjectId(userAccountId);
+            group.account = userAccountId;
             await db.collection('groups').insertOne(group);
             res.status(200).json(errorFunction(false, "group Created Successfully", group));
         }
@@ -317,8 +289,8 @@ async function updateGroup(req, res) {
     try {
         const db = getDB();
         let groupId = req.params['id'];
-        let userAccountId = req.user['user']['account'];
-        const group = await db.collection('groups').findOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+        let userAccountId = req.user[0]['account'];
+        const group = await db.collection('groups').findOne({ account: userAccountId, _id: ObjectId(groupId) });
         if (group == null) {
             res.status(404).json(errorFunction(true, "No group for the provided group id"))
         } else {
@@ -341,12 +313,12 @@ async function deleteGroup(req, res) {
     try {
         const db = getDB();
         let groupId = req.params['id'];
-        let userAccountId = req.user['user']['account'];
-        const group = await db.collection('groups').findOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+        let userAccountId = req.user[0]['account'];
+        const group = await db.collection('groups').findOne({ account: userAccountId, _id: ObjectId(groupId) });
         if (group == null) {
             res.status(404).json(errorFunction(true, "No group for the provided group id"))
         } else {
-            await db.collection('groups').deleteOne({ account: ObjectId(userAccountId), _id: ObjectId(groupId) });
+            await db.collection('groups').deleteOne({ account: userAccountId, _id: ObjectId(groupId) });
             res.status(200).json(errorFunction(false, "", "Group deleted successfully"));
         }
     } catch (err) {
